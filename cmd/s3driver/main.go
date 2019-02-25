@@ -37,6 +37,7 @@ var (
 	region          = flag.String("region", "", "S3 Region to use")
 	mounter         = flag.String("mounter", "s3fs", "Specify which Mounter to use")
 	encryptionKey   = flag.String("encryption-key", "", "Encryption key for file system (only used with s3ql)")
+	appid           = flag.String("appid", "", "appid for tencent cloud object store (only used with cos)")
 )
 
 func main() {
@@ -49,6 +50,7 @@ func main() {
 		Region:          *region,
 		Mounter:         *mounter,
 		EncryptionKey:   *encryptionKey,
+		Appid:           *appid,
 	}
 
 	driver, err := s3.NewS3(*nodeID, *endpoint, cfg)

@@ -6,52 +6,53 @@ import (
 )
 
 // Implements Mounter
-type s3fsMounter struct {
+type cosMounter struct {
 	bucket        *bucket
 	url           string
 	region        string
 	pwFileContent string
+	appid         string
 }
 
 const (
 	s3fsCmd = "s3fs"
 )
 
-func newS3fsMounter(b *bucket, cfg *Config) (Mounter, error) {
+func newCosMounter(b *bucket, cfg *Config) (Mounter, error) {
 	return &s3fsMounter{
 		bucket:        b,
 		url:           cfg.Endpoint,
 		region:        cfg.Region,
 		pwFileContent: cfg.AccessKeyID + ":" + cfg.SecretAccessKey,
+		appid:         cfg.Appid,
 	}, nil
 }
 
-func (s3fs *s3fsMounter) Stage(stageTarget string) error {
+func (cos *cosMounter) Stage(stageTarget string) error {
 	return nil
 }
 
-func (s3fs *s3fsMounter) Unstage(stageTarget string) error {
+func (cos *cosMounter) Unstage(stageTarget string) error {
 	return nil
 }
 
-func (s3fs *s3fsMounter) Mount(source string, target string) error {
-	if err := writes3fsPass(s3fs.pwFileContent); err != nil {
+func (cos *cosMounter) Mount(source string, target string) error {
+	if err := writes3fsPass(cos.pwFileContent); err != nil {
 		return err
 	}
 	args := []string{
-		fmt.Sprintf("%s:/%s", s3fs.bucket.Name, s3fs.bucket.FSPath),
+		fmt.Sprintf("%s-%s:/%s", cos.bucket.Name, cos.appid, cos.bucket.FSPath),
 		fmt.Sprintf("%s", target),
 		"-o", "sigv2",
 		"-o", "use_path_request_style",
-		"-o", fmt.Sprintf("url=%s", s3fs.url),
-		"-o", fmt.Sprintf("endpoint=%s", s3fs.region),
+		"-o", fmt.Sprintf("url=%s", cos.url),
 		"-o", "allow_other",
 		"-o", "mp_umask=000",
 	}
 	return fuseMount(target, s3fsCmd, args)
 }
 
-func (s3fs *s3fsMounter) Unmount(target string) error {
+func (cos *cosMounter) Unmount(target string) error {
 	return fuseUnmount(target, s3fsCmd)
 }
 

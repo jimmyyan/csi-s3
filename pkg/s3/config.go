@@ -8,4 +8,7 @@ type Config struct {
 	Endpoint        string
 	Mounter         string
 	EncryptionKey   string
+
+	// Only for tencentcloud cos
+	Appid string
 }

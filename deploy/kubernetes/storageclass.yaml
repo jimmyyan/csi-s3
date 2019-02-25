@@ -6,5 +6,5 @@ metadata:
 provisioner: ch.ctrox.csi.s3-driver
 parameters:
   # specify which mounter to use
-  # can be set to s3backer, s3ql, s3fs or goofys
-  mounter: s3backer
+  # can be set to s3backer, s3ql, s3fs, cos or goofys
+  mounter: cos

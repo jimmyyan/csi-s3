@@ -84,6 +84,7 @@ spec:
             - "--s3-endpoint=$(S3_ENDPOINT)"
             - "--region=$(REGION)"
             - "--encryption-key=$(ENCRYPTION_KEY)"
+            - "--appid=$(APPID)"
             - "--v=4"
           env:
             - name: CSI_ENDPOINT
@@ -117,6 +118,11 @@ spec:
                 secretKeyRef:
                   name: csi-s3-secret
                   key: encryptionKey
+            - name: APPID
+              valueFrom:
+                secretKeyRef:
+                  name: csi-s3-secret
+                  key: appid
           imagePullPolicy: "Always"
           volumeMounts:
             - name: plugin-dir

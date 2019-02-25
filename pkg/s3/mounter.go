@@ -22,6 +22,7 @@ const (
 	goofysMounterType   = "goofys"
 	s3qlMounterType     = "s3ql"
 	s3backerMounterType = "s3backer"
+	cosMouterType       = "cos"
 	mounterTypeKey      = "mounter"
 )
 
@@ -44,6 +45,9 @@ func newMounter(bucket *bucket, cfg *Config) (Mounter, error) {
 
 	case s3backerMounterType:
 		return newS3backerMounter(bucket, cfg)
+
+	case cosMouterType:
+		return newCosMounter(bucket, cfg)
 
 	default:
 		// default to s3backer
