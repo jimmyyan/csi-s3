@@ -22,7 +22,7 @@ func newS3fsMounter(b *bucket, cfg *Config) (Mounter, error) {
 		bucket:        b,
 		url:           cfg.Endpoint,
 		region:        cfg.Region,
-		pwFileContent: cfg.AccessKeyID + ":" + cfg.SecretAccessKey
+		pwFileContent: cfg.AccessKeyID + ":" + cfg.SecretAccessKey,
 	}, nil
 }
 

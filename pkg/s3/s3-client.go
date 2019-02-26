@@ -8,6 +8,7 @@ import (
 	"net/url"
 
 	"github.com/golang/glog"
+        "github.com/minio/minio-go"
 )
 
 const (
@@ -66,15 +67,15 @@ func (client *s3Client) bucketNameTransfer(bucketName string) string {
 }
 
 func (client *s3Client) bucketExists(bucketName string) (bool, error) {
-	return client.minio.BucketExists(bucketNameTransfer(bucketName))
+	return client.minio.BucketExists(client.bucketNameTransfer(bucketName))
 }
 
 func (client *s3Client) createBucket(bucketName string) error {
-	return client.minio.MakeBucket(bucketNameTransfer(bucketName), client.cfg.Region)
+	return client.minio.MakeBucket(client.bucketNameTransfer(bucketName), client.cfg.Region)
 }
 
 func (client *s3Client) createPrefix(bucketName string, prefix string) error {
-	_, err := client.minio.PutObject(bucketNameTransfer(bucketName), prefix+"/", bytes.NewReader([]byte("")), 0, minio.PutObjectOptions{})
+	_, err := client.minio.PutObject(client.bucketNameTransfer(bucketName), prefix+"/", bytes.NewReader([]byte("")), 0, minio.PutObjectOptions{})
 	if err != nil {
 		return err
 	}
@@ -82,10 +83,10 @@ func (client *s3Client) createPrefix(bucketName string, prefix string) error {
 }
 
 func (client *s3Client) removeBucket(bucketName string) error {
-	if err := client.emptyBucket(bucketNameTransfer(bucketName)); err != nil {
+	if err := client.emptyBucket(client.bucketNameTransfer(bucketName)); err != nil {
 		return err
 	}
-	return client.minio.RemoveBucket(bucketNameTransfer(bucketName))
+	return client.minio.RemoveBucket(client.bucketNameTransfer(bucketName))
 }
 
 func (client *s3Client) emptyBucket(bucketName string) error {
@@ -99,7 +100,7 @@ func (client *s3Client) emptyBucket(bucketName string) error {
 
 		defer close(doneCh)
 
-		for object := range client.minio.ListObjects(bucketNameTransfer(bucketName), "", true, doneCh) {
+		for object := range client.minio.ListObjects(client.bucketNameTransfer(bucketName), "", true, doneCh) {
 			if object.Err != nil {
 				listErr = object.Err
 				return
@@ -115,12 +116,12 @@ func (client *s3Client) emptyBucket(bucketName string) error {
 
 	select {
 	default:
-		errorCh := client.minio.RemoveObjects(bucketNameTransfer(bucketName), objectsCh)
+		errorCh := client.minio.RemoveObjects(client.bucketNameTransfer(bucketName), objectsCh)
 		for e := range errorCh {
 			glog.Errorf("Failed to remove object %s, error: %s", e.ObjectName, e.Err)
 		}
 		if len(errorCh) != 0 {
-			return fmt.Errorf("Failed to remove all objects of bucket %s", bucketNameTransfer(bucketName))
+			return fmt.Errorf("Failed to remove all objects of bucket %s", client.bucketNameTransfer(bucketName))
 		}
 	}
 
@@ -131,13 +132,13 @@ func (client *s3Client) setBucket(bucket *bucket) error {
 	b := new(bytes.Buffer)
 	json.NewEncoder(b).Encode(bucket)
 	opts := minio.PutObjectOptions{ContentType: "application/json"}
-	_, err := client.minio.PutObject(bucketNameTransfer(bucket.Name), metadataName, b, int64(b.Len()), opts)
+	_, err := client.minio.PutObject(client.bucketNameTransfer(bucket.Name), metadataName, b, int64(b.Len()), opts)
 	return err
 }
 
 func (client *s3Client) getBucket(bucketName string) (*bucket, error) {
 	opts := minio.GetObjectOptions{}
-	obj, err := client.minio.GetObject(bucketNameTransfer(bucketName), metadataName, opts)
+	obj, err := client.minio.GetObject(client.bucketNameTransfer(bucketName), metadataName, opts)
 	if err != nil {
 		return &bucket{}, err
 	}

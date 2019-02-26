@@ -16,11 +16,11 @@ type cosMounter struct {
 }
 
 const (
-	s3fsCmd = "s3fs"
+	cosCmd = "s3fs"
 )
 
 func newCosMounter(b *bucket, cfg *Config) (Mounter, error) {
-	return &s3fsMounter{
+	return &cosMounter{
 		bucket:        b,
 		url:           cfg.Endpoint,
 		region:        cfg.Region,
@@ -52,9 +52,9 @@ func (cos *cosMounter) Mount(source string, target string) error {
 	}
 
 	glog.Info("Mount args: ", args)
-	return fuseMount(target, s3fsCmd, args)
+	return fuseMount(target, cosCmd, args)
 }
 
 func (cos *cosMounter) Unmount(target string) error {
-	return fuseUnmount(target, s3fsCmd)
+	return fuseUnmount(target, cosCmd)
 }
