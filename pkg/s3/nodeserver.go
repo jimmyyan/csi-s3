@@ -22,12 +22,9 @@ import (
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
 
-	"github.com/container-storage-interface/spec/lib/go/csi/v0"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"k8s.io/kubernetes/pkg/util/mount"
-
-	"github.com/kubernetes-csi/drivers/pkg/csi-common"
 )
 
 type nodeServer struct {
@@ -138,6 +135,7 @@ func (ns *nodeServer) NodeStageVolume(ctx context.Context, req *csi.NodeStageVol
 		return nil, status.Error(codes.InvalidArgument, "NodeStageVolume Volume Capability must be provided")
 	}
 
+	glog.Infof("Unstage volume: %s, staingTargetPath: %s", volumeID, stagingTargePath)
 	notMnt, err := checkMount(stagingTargetPath)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
@@ -173,6 +171,7 @@ func (ns *nodeServer) NodeUnstageVolume(ctx context.Context, req *csi.NodeUnstag
 		return nil, status.Error(codes.InvalidArgument, "Target path missing in request")
 	}
 
+	glog.Info("Unstage volume: ", volumeID)
 	b, err := ns.s3.client.getBucket(volumeID)
 	if err != nil {
 		return nil, err
@@ -207,7 +206,12 @@ func (ns *nodeServer) NodeGetCapabilities(ctx context.Context, req *csi.NodeGetC
 }
 
 func checkMount(targetPath string) (bool, error) {
+	glog.Infof("Check the targetPath:%s mounted or not", targetPath)
 	notMnt, err := mount.New("").IsLikelyNotMountPoint(targetPath)
+	defer func() {
+		glog.Infof("Mounted ", !notMnt)
+	}()
+
 	if err != nil {
 		if os.IsNotExist(err) {
 			if err = os.MkdirAll(targetPath, 0750); err != nil {
